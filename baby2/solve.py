@@ -1,15 +1,21 @@
 #!/usr/bin/python3
+
 import angr
-import IPython
 import claripy
 
-proj = angr.Project("baby2")
-s = proj.factory.entry_state(args=[claripy.BVS('arg_1',50*8)])
+project = angr.Project('baby2')
 
-simgr = proj.factory.simgr(s)
-print(simgr.explore(find=lambda s: b"Correct" in s.posix.dumps(1)))
+argv1 = claripy.BVS("argv1", 100*8)
+state = project.factory.entry_state(args=["./baby2", argv1])
+sm = project.factory.simulation_manager(state)
 
-#print(simgr.deadended[0].posix.dumps(0))
-#print(simgr.deadended[0].posix.dumps(1))
-IPython.embed()
+sm.explore(find=0x004031a3)
+
+found = sm.found[0]
+
+solution = found.solver.eval(argv1, cast_to=bytes)
+solution = solution[:solution.find(b"\x00")]
+
+print(repr(solution))
+
 
