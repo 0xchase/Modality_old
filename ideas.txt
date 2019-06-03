@@ -1,0 +1,7 @@
+Choose from stdin, argument, or scanf inputs
+Automatically print addresses for different printf/puts options at start
+Integrate address chooser with radare2
+
+Solve for address, output, etc
+
+
