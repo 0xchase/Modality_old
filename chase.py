@@ -5,8 +5,8 @@ import claripy
 import os
 
 def main():
-	print("file lock, input stdin, find 0x4008a6, explore")
-	print("file baby, input arg, find 0x004031a3, explore")
+	print("file lock, input stdin, find 0x4008a6, explore, print stdin")
+	print("file baby, input arg, find 0x004031a3, explore, print solution")
 
 	while True:
 		print(">> ", end="")

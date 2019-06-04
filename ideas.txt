@@ -5,3 +5,5 @@ Integrate address chooser with radare2
 Solve for address, output, etc
 
 CMU binary has example for storing at memory address
+
+CSCI-4968-MBE has RPI binary exploitation challenges solutions
