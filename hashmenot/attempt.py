@@ -1,11 +1,21 @@
 #!/usr/bin/python3
+
 import angr
+import claripy
 
-project = angr.Project("hashmenot", auto_load_libs=False)
+project = angr.Project('hashmenot')
 
-@project.hook(0x400a2b)
-def print_flag(state):
-    print("FLAG SHOULD BE:", state.posix.dumps(0))
-    project.terminate_execution()
+argv = claripy.BVS("arg", 100*8)
+state = project.factory.entry_state()
+sm = project.factory.simulation_manager(state)
 
-project.execute()
+sm.explore(find=0x400a2b)
+
+if sm.found:
+	print(sm.found[0].posix.dumps(0))
+else:
+	print("No solutions found")
+
+#print(repr(solution))
+
+
