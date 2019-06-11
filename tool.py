@@ -4,10 +4,12 @@ import angr
 import claripy
 import os
 
-def main():
+def help():
 	print("file lock, input stdin, find 0x4008a6, explore, print stdin")
 	print("file baby, input arg, find 0x004031a3, explore, print solution")
 
+def main():
+	help()
 	while True:
 		print(">> ", end="")
 		cmd = input().split(" ")
