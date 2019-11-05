@@ -1,51 +1,59 @@
 #!/usr/bin/python3
 
+# Scripting engine for this script. Lines of commands.
+
 import angr
 import claripy
-import os
+import copy
 
-def help():
-	print("file lock, input stdin, find 0x4008a6, explore, print stdin")
-	print("file baby, input arg, find 0x004031a3, explore, print solution")
+address = 0x000000
+
+#project = angr.Project("hashme", auto_load_libs=False)
+project = angr.Project("hashme", use_sim_procedures=True)
+
+flag = claripy.BVS('flag', 11*8)
+
+state = project.factory.entry_state(stdin=flag)
+simgr = project.factory.simgr(state)
 
 def main():
-	help()
-	while True:
-		print(">> ", end="")
-		cmd = input().split(" ")
+    global simgr
+    global state
 
-		if cmd[0] == "file":
-			project = angr.Project(cmd[1])
-			state = project.factory.entry_state()
-		if cmd[0] == "input":
-			if cmd[1] == "stdin":
-				state = project.factory.entry_state()
-				simgr = project.factory.simulation_manager(state)
-			if cmd[1] == "arg":
-				argv1 = claripy.BVS("argv1", 100*8)
-				state = project.factory.entry_state(args=["./baby", argv1])
-				simgr = project.factory.simulation_manager(state)
-		
-		if cmd[0] == "find":
-			if len(cmd) > 1:
-				find_addr = int(cmd[1], 16)
-		if cmd[0] == "explore":
-			simgr.explore(find=find_addr)
-			if simgr.found:
-				print(simgr.found[0].posix.dumps(0).decode("utf-8"))
-			else:
-				print("No solutions found")
-		if cmd[0] == "print":
-			if cmd[1] == "stdin":
-				print(simgr.found[0].posix.dumps(0).decode("utf-8"))
-			if cmd[1] == "stdout":
-				print(simgr.found[0].posix.dumps(1).decode("utf-8"))
-			if cmd[1] == "solution":
-				solution = simgr.found[0].solver.eval(argv1, cast_to=bytes)
-				print(solution[:solution.find(b"\x00")].decode("utf-8"))
-		if cmd[0] == "clear":
-			os.system("clear")
-		if cmd[0] == "exit":
-			exit()
+    update_addr()
+
+    while True:
+        print("[" + hex(address) + "]> ", end='')
+        cmd = input().strip().split(" ")
+        if cmd[0] == "dcu":
+            print("Continue until")
+        if cmd[0] == "de":
+            simgr.explore(find=0x400970, avoid=(0x400928, 0x40095c, 0x400a06))
+            #temp_state = copy.deepcopy(state)
+            if simgr.found:
+                print("Found " + str(len(simgr.found)) + " solutions")
+                print(str(simgr.found[0].solver.eval(flag, cast_to=bytes)))
+            else:
+                print("Didn't find solution... reverting state")
+                #state = temp_state
+        if cmd[0] == "dc":
+            simgr.run(until=lambda sm: sm.active[0].addr == 0x4008d6)
+        if cmd[0] == "ds":
+            simgr.step()
+        if cmd[0] == "di":
+            state = project.factory.entry_state()
+            simgr = project.factory.simgr(state)
+        if cmd[0] == "q":
+            exit()
+
+        update_addr()
+
+def update_addr():
+    global address
+    try:
+        address = simgr.active[0].addr
+    except:
+        address = 0x0
 
 main()
+
