@@ -19,6 +19,11 @@ from tabulate import tabulate
 # Commands for filtering stash
 # Backwards slicing and backtracing for stash
 # Commands for declaring BVS, pushing BVS
+# Print stdout as it executes
+# Color output
+
+def temp():
+    print("Temp")
 
 command_global = []
 
@@ -26,7 +31,7 @@ print("Imported libraries")
 
 #bvs_stdin = claripy.BVS("bvs_stdin", 8*32)
 
-project = angr.Project("bomb")
+project = angr.Project("lockpick")
 state = project.factory.entry_state(add_options=angr.options.unicorn)
 simgr = project.factory.simgr(state)
 old_state = state
@@ -37,7 +42,7 @@ old_state = state
 
 print("Setup angr")
 
-r = r2pipe.open("bomb")
+r = r2pipe.open("lockpick")
 r.cmd("aa")
 
 temp_addrs = r.cmd("afll~[0]").split("\n")
