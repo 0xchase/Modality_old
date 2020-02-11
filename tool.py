@@ -4,6 +4,7 @@ import angr
 import claripy
 import code
 import r2pipe
+from tabulate import tabulate
 
 # Continue until fork, syscall, memory_write, etc. All in angr breakpoint docs.
 # Hook memory writes, returns, etc with breakpoints to print what is happening
@@ -81,9 +82,13 @@ def debug_continue_until_branch():
         simgr.step()
 
 def disass_states():
+    output = []
+    num = 10
+    if len(command_global) > 1:
+        num = int(command_global[1])
     for s in simgr.active:
-        print(r.cmd("pdi 5 @ " + hex(s.addr)))
-        print("="*50)
+        output.append(r.cmd("pi " + str(num) + " @ " + hex(s.addr)))
+    print(tabulate([output]))
 
 def current_location():
     return state.regs.rip
@@ -123,7 +128,7 @@ def main():
     global command_global
 
     while True:
-        print("[" + get_addr() + "]> ", end='')
+        print("[" + get_addr() + "|" + str(len(simgr.deadended)) + "]> ", end='')
         command = input().strip().split(" ")
         command_global = command
 
