@@ -12,6 +12,13 @@ from tabulate import tabulate
 # When hit calls like strlen(), choose to simulate or constrain
 # Replace state variable with stash
 # in state, add_options=angr.options.unicorn
+# Command to generate angr script from command history
+# Will save information about avoids, etc
+# Command to edit "base script", (which is contents of main.py which run every time it starts), then can use debug commands
+# Avoid commands like dea+ dea- dea--
+# Commands for filtering stash
+# Backwards slicing and backtracing for stash
+# Commands for declaring BVS, pushing BVS
 
 command_global = []
 
@@ -19,14 +26,18 @@ print("Imported libraries")
 
 #bvs_stdin = claripy.BVS("bvs_stdin", 8*32)
 
-project = angr.Project("lockpick")
+project = angr.Project("bomb")
 state = project.factory.entry_state(add_options=angr.options.unicorn)
 simgr = project.factory.simgr(state)
 old_state = state
 
+#project.hook(0x8048d7b, angr.SIM_PROCEDURES["libc"]["strcmp"]())
+#project.hook(0x8048d3b, angr.SIM_PROCEDURES["libc"]["strlen"]())
+
+
 print("Setup angr")
 
-r = r2pipe.open("lockpick")
+r = r2pipe.open("bomb")
 r.cmd("aa")
 
 temp_addrs = r.cmd("afll~[0]").split("\n")
@@ -137,6 +148,19 @@ def revive_state():
     addr = int(command_global[1], 16)
     simgr.move(from_stash='deadended', to_stash='active', filter_func=lambda s: s.addr == addr)
 
+def debug_initialize():
+    global state
+    global simgr
+
+    if len(command_global) == 1:
+        print("Initializing at entry state")
+        state = project.factory.entry_state()
+        simgr = project.factory.simgr(state)
+    else:
+        print("Initializing blank state at " + command_global[1])
+        state = project.factory.blank_state(addr=int(command_global[1],16))
+        simgr = project.factory.simgr(state)
+
 def get_addr():
     ret = ""
     if len(simgr.active) < 4:
@@ -158,12 +182,14 @@ commands = [("dc", debug_continue),
             ("ds", debug_step),
             ("dcub", debug_continue_until_branch),
             ("deu", debug_explore_until),
+            ("ood", debug_initialize),
             ("pd", disass_states),
             ("pi", print_stdin),
             ("po", print_stdout),
             ("kill", kill_state),
             ("revive", revive_state),
             ("i", interactive),
+            ("temp", temp),
             ("exit", exit),
             ("q", exit)]
 
