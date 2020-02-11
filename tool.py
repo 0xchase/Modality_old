@@ -9,6 +9,7 @@ from tabulate import tabulate
 # Continue until fork, syscall, memory_write, etc. All in angr breakpoint docs.
 # Hook memory writes, returns, etc with breakpoints to print what is happening
 # Manager for moving and storing different simgr states
+# When hit calls like strlen(), choose to simulate or constrain
 
 command_global = []
 
