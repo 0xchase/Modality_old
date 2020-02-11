@@ -14,14 +14,14 @@ command_global = []
 
 print("Imported libraries")
 
-project = angr.Project("lockpick")
+project = angr.Project("hashmenot")
 state = project.factory.entry_state()
 simgr = project.factory.simgr(state)
-
+old_state = state
 
 print("Setup angr")
 
-r = r2pipe.open("lockpick")
+r = r2pipe.open("hashmenot")
 r.cmd("aa")
 
 temp_addrs = r.cmd("afll~[0]").split("\n")
@@ -49,18 +49,31 @@ def symbol_to_address(s):
 def debug_continue():
     simgr.run()
 
+def debug_step():
+    num = int(command_global[1])
+    for i in range(0, num):
+        simgr.step()
+
 def debug_explore_until():
     global state
     global simgr
+    global old_state
+
     if "0x" in command_global[1]:
         addr = int(command_global[1], 16)
     else:
         addr = int(symbol_to_address(command_global[1]), 16)
         
     print("Debug explore until " + hex(addr))
+    old_state = state
     simgr.explore(find=addr)
-    state = simgr.found[0]
-    simgr = project.factory.simgr(state)
+    if simgr.found:
+        state = simgr.found[0]
+        simgr = project.factory.simgr(state)
+    else:
+        print("Exploration failed")
+        state = old_state
+        simgr = project.factory.simgr(state)
 
 def debug_continue_until():
     print("Debug continue until main")
@@ -96,6 +109,14 @@ def current_location():
 def print_stdin():
     print(state.posix.dumps(0).decode())
 
+def kill_state():
+    addr = int(command_global[1], 16)
+    simgr.move(from_stash='active', to_stash='deadended', filter_func=lambda s: s.addr == addr)
+
+def revive_state():
+    addr = int(command_global[1], 16)
+    simgr.move(from_stash='deadended', to_stash='active', filter_func=lambda s: s.addr == addr)
+
 def get_addr():
     ret = ""
     if len(simgr.active) < 4:
@@ -114,10 +135,13 @@ def interactive():
 
 commands = [("dc", debug_continue),
             ("dcu", debug_continue_until),
+            ("ds", debug_step),
             ("dcub", debug_continue_until_branch),
             ("deu", debug_explore_until),
             ("pd", disass_states),
             ("pi", print_stdin),
+            ("kill", kill_state),
+            ("revive", revive_state),
             ("i", interactive),
             ("exit", exit),
             ("q", exit)]
