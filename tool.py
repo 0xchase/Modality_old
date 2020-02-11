@@ -10,19 +10,23 @@ from tabulate import tabulate
 # Hook memory writes, returns, etc with breakpoints to print what is happening
 # Manager for moving and storing different simgr states
 # When hit calls like strlen(), choose to simulate or constrain
+# Replace state variable with stash
+# in state, add_options=angr.options.unicorn
 
 command_global = []
 
 print("Imported libraries")
 
-project = angr.Project("hashmenot")
-state = project.factory.entry_state()
+#bvs_stdin = claripy.BVS("bvs_stdin", 8*32)
+
+project = angr.Project("lockpick")
+state = project.factory.entry_state(add_options=angr.options.unicorn)
 simgr = project.factory.simgr(state)
 old_state = state
 
 print("Setup angr")
 
-r = r2pipe.open("hashmenot")
+r = r2pipe.open("lockpick")
 r.cmd("aa")
 
 temp_addrs = r.cmd("afll~[0]").split("\n")
@@ -67,10 +71,14 @@ def debug_explore_until():
         
     print("Debug explore until " + hex(addr))
     old_state = state
-    simgr.explore(find=addr)
-    if simgr.found:
-        state = simgr.found[0]
-        simgr = project.factory.simgr(state)
+    #simgr.explore(find=addr)
+    simgr.explore(find=addr).unstash(from_stash="found", to_stash="active")
+    #if simgr.found:
+    if simgr.active:
+        print("Found " + str(len(simgr.active)) + " solutions")
+        # This would cause problems if only one would work in the future
+        #state = simgr.found[0]
+        #simgr = project.factory.simgr(state)
     else:
         print("Exploration failed")
         state = old_state
@@ -108,7 +116,18 @@ def current_location():
     return state.regs.rip
 
 def print_stdin():
-    print(state.posix.dumps(0).decode())
+    for s in simgr.active:
+        try:
+            print(s.posix.dumps(0).decode())
+        except:
+            print(s.posix.dumps(0))
+
+def print_stdout():
+    for s in simgr.active:
+        try:
+            print(s.posix.dumps(1).decode())
+        except:
+            print(s.posix.dumps(1))
 
 def kill_state():
     addr = int(command_global[1], 16)
@@ -141,6 +160,7 @@ commands = [("dc", debug_continue),
             ("deu", debug_explore_until),
             ("pd", disass_states),
             ("pi", print_stdin),
+            ("po", print_stdout),
             ("kill", kill_state),
             ("revive", revive_state),
             ("i", interactive),
