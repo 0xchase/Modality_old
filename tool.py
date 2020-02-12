@@ -5,6 +5,7 @@ import claripy
 import code
 import r2pipe
 from tabulate import tabulate
+import sys
 
 # Continue until fork, syscall, memory_write, etc. All in angr breakpoint docs.
 # Hook memory writes, returns, etc with breakpoints to print what is happening
@@ -22,6 +23,10 @@ from tabulate import tabulate
 # Print stdout as it executes
 # Color output
 
+if len(sys.argv) < 2:
+    print("Usage: ./tool.py <binary>")
+    exit()
+
 def temp():
     print("Temp")
 
@@ -31,7 +36,7 @@ print("Imported libraries")
 
 #bvs_stdin = claripy.BVS("bvs_stdin", 8*32)
 
-project = angr.Project("lockpick")
+project = angr.Project(sys.argv[1])
 state = project.factory.entry_state(add_options=angr.options.unicorn)
 simgr = project.factory.simgr(state)
 old_state = state
@@ -39,10 +44,9 @@ old_state = state
 #project.hook(0x8048d7b, angr.SIM_PROCEDURES["libc"]["strcmp"]())
 #project.hook(0x8048d3b, angr.SIM_PROCEDURES["libc"]["strlen"]())
 
-
 print("Setup angr")
 
-r = r2pipe.open("lockpick")
+r = r2pipe.open(sys.argv[1])
 r.cmd("aa")
 
 temp_addrs = r.cmd("afll~[0]").split("\n")
