@@ -21,7 +21,10 @@ import sys
 # Backwards slicing and backtracing for stash
 # Commands for declaring BVS, pushing BVS
 # Print stdout as it executes
-# Color output
+# Coolor output
+# Make all commands run on every state or all states
+# Divide up files
+# Replace radare2 calls with capstone
 
 if len(sys.argv) < 2:
     print("Usage: ./tool.py <binary>")
@@ -149,6 +152,18 @@ def print_stdout():
         except:
             print(s.posix.dumps(1))
 
+def debug_registers():
+    print("rax = " + str(state.regs.rax))
+    print("rbx = " + str(state.regs.rbx))
+    print("rcx = " + str(state.regs.rcx))
+    print("rdx = " + str(state.regs.rdx))
+    print("rsi = " + str(state.regs.rsi))
+    print("rdi = " + str(state.regs.rdi))
+    print("rsp = " + str(state.regs.rsp))
+    print("rbp = " + str(state.regs.rbp))
+    print("rip = " + str(state.regs.rip))
+    
+
 def kill_state():
     addr = int(command_global[1], 16)
     simgr.move(from_stash='active', to_stash='deadended', filter_func=lambda s: s.addr == addr)
@@ -191,6 +206,7 @@ commands = [("dc", debug_continue),
             ("ds", debug_step),
             ("dcub", debug_continue_until_branch),
             ("deu", debug_explore_until),
+            ("dr", debug_registers),
             ("ood", debug_initialize),
             ("pd", disass_states),
             ("pi", print_stdin),

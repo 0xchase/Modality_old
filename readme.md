@@ -1,22 +1,42 @@
-# Angr Lib
+# Modality Debugger
 
-## Helper functions
- - Run until first symbolic branch
- - Run until memory address
- - Print memory like peda
- - Init memory (zero everything)
- - Display info (funtions with addresses, calls, etc)
+# Design ideas
 
-## Pre-build hooks
+## Pre-built hooks
  - Check for string equality
 
+## Pre-built inspect calls
+ - Print on function call with args
 
-# Angr debugger
-## Ideas
- - Has scripting engine, can script like normal angr, then move to interactive mode
- - Debug until branch, then dump assembly on each side
+## Pre-built constraints
+ - Constrain on strlen()
+
+## Other goals
+ - Scripting ability. Works like normal angr script, but can enter debug mode
+ - Eventually turn into r2 plugin, with commands to control execution
+
+# Commands
+## Debug commands
+ - d: Print debug help menu
+ - di: Debugger info
+ - ds: Debugger step
+ - dso: Debugger step over
+ - dr: Print registers
+ - dc: Continue
+ - dcu: Continue until address
+ - de: Explore
+ - dei: Explore info (find addresses, avoid addresses)
+ - de+: Add avoid address
+ - de-: Remove avoid address
+ - de--: Remove all avoid addresses
+
+## Stash commands
+ - s: Print stash help menu
+ - sk: Kill state in stash
+ - sr: Revive state in stash
+ - sp: Print details about items in stash
  - 
 
-
-Eventually turn into r2 plugin, with commands to control execution
-
+## Dissassembly commands
+ - pd: Disassemble n bytes
+ - pdf: Disassemble function
