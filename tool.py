@@ -1,5 +1,9 @@
 #!/usr/bin/python3
 
+if len(sys.argv) < 2:
+    print("Usage: ./tool.py <binary>")
+    exit()
+
 import angr
 import claripy
 import sys
@@ -11,10 +15,9 @@ import stash
 from debug import *
 from disass import *
 from project import *
+from hooks import *
 
-if len(sys.argv) < 2:
-    print("Usage: ./tool.py <binary>")
-    exit()
+# Change projects to be a file in master directory, not a class
 
 print("Imported libraries")
 
