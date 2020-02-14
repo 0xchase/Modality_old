@@ -40,3 +40,14 @@
 ## Dissassembly commands
  - pd: Disassemble n bytes
  - pdf: Disassemble function
+
+## Other notes
+ Hook memory writes, returns, etc with breakpoints to print what is happening
+ Manager for moving and storing different simgr states
+ When hit calls like strlen(), choose to simulate or constrain
+ in state, add_options=angr.options.unicorn
+ Command to generate angr script from command history
+ Backwards slicing and backtracing for stash
+ Print stdout as it executes
+ Replace radare2 calls with capstone
+
