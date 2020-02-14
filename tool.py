@@ -7,6 +7,11 @@ import r2pipe
 from tabulate import tabulate
 import sys
 
+sys.path.append("src/")
+
+import stash
+import debug
+
 # Continue until fork, syscall, memory_write, etc. All in angr breakpoint docs.
 # Hook memory writes, returns, etc with breakpoints to print what is happening
 # Manager for moving and storing different simgr states
@@ -23,8 +28,8 @@ import sys
 # Print stdout as it executes
 # Coolor output
 # Make all commands run on every state or all states
-# Divide up files
 # Replace radare2 calls with capstone
+# Catch usage erros, print usage, else print error
 
 if len(sys.argv) < 2:
     print("Usage: ./tool.py <binary>")
@@ -36,8 +41,6 @@ def temp():
 command_global = []
 
 print("Imported libraries")
-
-#bvs_stdin = claripy.BVS("bvs_stdin", 8*32)
 
 project = angr.Project(sys.argv[1])
 state = project.factory.entry_state(add_options=angr.options.unicorn)
@@ -164,14 +167,6 @@ def debug_registers():
     print("rip = " + str(state.regs.rip))
     
 
-def kill_state():
-    addr = int(command_global[1], 16)
-    simgr.move(from_stash='active', to_stash='deadended', filter_func=lambda s: s.addr == addr)
-
-def revive_state():
-    addr = int(command_global[1], 16)
-    simgr.move(from_stash='deadended', to_stash='active', filter_func=lambda s: s.addr == addr)
-
 def debug_initialize():
     global state
     global simgr
@@ -209,27 +204,36 @@ commands = [("dc", debug_continue),
             ("dr", debug_registers),
             ("ood", debug_initialize),
             ("pd", disass_states),
-            ("pi", print_stdin),
-            ("po", print_stdout),
-            ("kill", kill_state),
-            ("revive", revive_state),
             ("i", interactive),
             ("temp", temp),
             ("exit", exit),
             ("q", exit)]
 
+stash_commands = [
+            ("sl", stash.list),
+            ("sk", stash.kill),
+            ("sr", stash.revive),
+            ("sn", stash.name),
+            ("si", stash.stdin),
+            ("so", stash.stdout),
+            ]
+
 print("Setup commands")
 
 def main():
     global command_global
+    global simgr
 
     while True:
         print("[" + get_addr() + "|" + str(len(simgr.deadended)) + "]> ", end='')
         command = input().strip().split(" ")
         command_global = command
 
-        for c, f in commands:
-            if c == command[0]:
+        for cmd, f in commands:
+            if cmd == command[0]:
                 f()
+        for cmd, function in stash_commands:
+            if cmd == command[0]:
+                function(lambda: null, command, simgr)
 main()
 
