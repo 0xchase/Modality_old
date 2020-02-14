@@ -35,7 +35,12 @@
  - sk: Kill state in stash
  - sr: Revive state in stash
  - sp: Print details about items in stash
- - 
+
+## Constraint commands
+ - ca: Constrain avoids list
+ - ca+: Constrain add avoid
+ - ca-: Constrain remove avoids
+ - ca--: Constrain remove all avoids
 
 ## Dissassembly commands
  - pd: Disassemble n bytes

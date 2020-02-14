@@ -35,6 +35,24 @@ class Debugger():
             state = old_state
             simgr = project.factory.simgr(state)
 
+    def find(self, state):
+        return self.find_string in state.posix.dumps(1)
+
+    def avoid(self, state):
+        return self.avoid_string in state.posix.dumps(1)
+
+    def debug_explore_until_stdout(self, main, command, simgr):
+        self.find_string = command[1].encode()
+        self.avoid_string = command[2].encode()
+        simgr.explore(find=self.find, avoid=self.avoid)
+
+        if simgr.active:
+            print("Found " + str(len(simgr.active)) + " solutions")
+        else:
+            print("Exploration failed")
+        
+        
+    
     def debug_continue_until(self, main, command, simgr):
         print("Debug continue until self, main")
         state.inspect.b("call")

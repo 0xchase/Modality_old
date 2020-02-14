@@ -1,12 +1,13 @@
 #!/usr/bin/python3
 
+import sys
+
 if len(sys.argv) < 2:
     print("Usage: ./tool.py <binary>")
     exit()
 
 import angr
 import claripy
-import sys
 
 sys.path.append("src/")
 
@@ -31,6 +32,7 @@ debugger_commands = [
             ("ds", debugger.debug_step),
             ("dcub", debugger.debug_continue_until_branch),
             ("deu", debugger.debug_explore_until),
+            ("deuo", debugger.debug_explore_until_stdout),
             ("dr", debugger.debug_registers),
             ("doo", debugger.debug_initialize),
             ("pd", disassembler.disassemble)]
