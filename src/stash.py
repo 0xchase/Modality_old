@@ -37,7 +37,20 @@ def stdin(main, command, simgr):
     if len(command) == 1:
         for state in simgr.active:
             print_decode(state.posix.dumps(0))
+    else:
+        print_decode(simgr.active[int(command[1])].posix.dumps(0))
 
+def stdout_all(main, command, simgr):
+    if len(command) == 1:
+        for state in simgr.active + simgr.deadended:
+            print_decode(state.posix.dumps(1))
+    else:
+        print_decode(simgr.active[int(command[1])].posix.dumps(1))
+
+def stdin_all(main, command, simgr):
+    if len(command) == 1:
+        for state in simgr.active + simgr.deadended:
+            print_decode(state.posix.dumps(0))
 # ========== Utilities ========== #
 
 def get_name(state):

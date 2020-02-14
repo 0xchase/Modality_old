@@ -9,10 +9,10 @@ import sys
 
 sys.path.append("src/")
 
+# Import rest of code base
 import stash
 import debug
 
-# Continue until fork, syscall, memory_write, etc. All in angr breakpoint docs.
 # Hook memory writes, returns, etc with breakpoints to print what is happening
 # Manager for moving and storing different simgr states
 # When hit calls like strlen(), choose to simulate or constrain
@@ -215,7 +215,9 @@ stash_commands = [
             ("sr", stash.revive),
             ("sn", stash.name),
             ("si", stash.stdin),
+            ("sia", stash.stdin_all),
             ("so", stash.stdout),
+            ("soa", stash.stdout_all),
             ]
 
 print("Setup commands")
