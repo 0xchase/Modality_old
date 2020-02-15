@@ -22,7 +22,13 @@ from hooks import *
 
 print("Imported libraries")
 
-project = Project(sys.argv[1])
+argc = len(sys.argv)
+if(argc == 2):
+    project = Project(sys.argv[1])
+else:
+    project = Project(sys.argv[1], int(sys.argv[2]))
+
+
 disassembler = Disassembler(project.filename)
 debugger = Debugger(disassembler.functions)
 
@@ -50,6 +56,18 @@ stash_commands = [
 util_commands = [
             ("q", exit)]
 
+
+def eval_sym(command, project):
+    num = int(command[1])
+    for i in project.simgr.deadended:
+        result = i.solver.eval(project.argv[num], cast_to=bytes)
+        print(result)
+
+
+extra = [
+            ("eval", eval_sym)
+        ]
+
 def main():
     global project
 
@@ -66,6 +84,11 @@ def main():
         for cmd, function in util_commands:
             if cmd == command[0]:
                 function()
+        for cmd, function in extra:
+            if cmd == command[0]:
+                eval_sym(command, project)
+                #function(lambda: command, project)
+
 
 def get_addr():
     ret = ""
