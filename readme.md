@@ -1,5 +1,45 @@
 # Modality Debugger
 
+This project is in it's early stages and will only work on some binaries.
+
+## Example
+```
+terminal:~# ./tool.py challenges/lockpicksim
+Imported libraries
+r_config_set: variable 'asm.cmtright' not found
+[0x400600|0]> deu main
+Debug explore until 0x4006f6
+Found 1 solutions
+[0x4006f6|0]> dcub
+WARNING | 2020-02-16 17:55:19,360 | angr.state_plugins.symbolic_memory | The program is accessing memory or registers with an unspecified value. This could indicate unwanted behavior.
+WARNING | 2020-02-16 17:55:19,360 | angr.state_plugins.symbolic_memory | angr will cope with this by generating an unconstrained symbolic variable and continuing. You can resolve this by:
+WARNING | 2020-02-16 17:55:19,360 | angr.state_plugins.symbolic_memory | 1) setting a value to the initial state
+WARNING | 2020-02-16 17:55:19,360 | angr.state_plugins.symbolic_memory | 2) adding the state option ZERO_FILL_UNCONSTRAINED_{MEMORY,REGISTERS}, to make unknown regions hold null
+WARNING | 2020-02-16 17:55:19,360 | angr.state_plugins.symbolic_memory | 3) adding the state option SYMBOL_FILL_UNCONSTRAINED_{MEMORY_REGISTERS}, to suppress these messages.
+WARNING | 2020-02-16 17:55:19,361 | angr.state_plugins.symbolic_memory | Filling memory at 0x7ffffffffff0000 with 64 unconstrained bytes referenced from 0x10a27e0 (strlen+0x0 in libc.so.6 (0xa27e0))
+WARNING | 2020-02-16 17:55:19,362 | angr.state_plugins.symbolic_memory | Filling memory at 0x7fffffffffeff70 with 8 unconstrained bytes referenced from 0x10a27e0 (strlen+0x0 in libc.so.6 (0xa27e0))
+[0x4008a0 0x4008ca|0]> pd
+-----------------------------------------------------------  -----------------------------
+cmp dword [var_2ch], 1                                       mov edi, str.Wrong
+jne 0x4008ca                                                 call sym.imp.puts
+lea rax, [var_20h]                                           mov eax, 1
+mov rdi, rax                                                 mov rsi, qword [var_8h]
+call sym.imp.atoi                                            xor rsi, qword fs:[0x28]
+mov esi, eax                                                 je 0x4008ed
+mov edi, str.Correct__Flag:_UMDCTF__you_p1cked__d_correctly  call sym.imp.__stack_chk_fail
+mov eax, 0                                                   leave
+call sym.imp.printf                                          ret
+mov eax, 0                                                   nop
+-----------------------------------------------------------  -----------------------------
+[0x4008a0 0x4008ca|0]> sk 1
+[0x4008a0|1]> dc
+[|3]> pia
+[|3]> sia
+b'\xf5\xf5\xf5\xf4\x00'
+04800
+4801>
+[|3]> 
+```
 # Design ideas
 
 ## Pre-built hooks
