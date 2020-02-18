@@ -17,7 +17,9 @@ class Disassembler():
 
         self.r = r
 
-    def disassemble(self, main, command, simgr):
+    def disassemble(self):
+        command = self.command
+        simgr = self.simgr
         r = self.r
         output = []
         num = 10
