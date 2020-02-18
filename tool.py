@@ -16,23 +16,24 @@ import stash
 from debug import *
 from disass import *
 from hooks import *
+from util import *
 
 print("Imported libraries")
 
 filename = sys.argv[1]
 project = angr.Project(filename)
 state = project.factory.entry_state()
-simgr = project.factory.simgr(state)
+simgr = project.factory.simgr(state, veritesting=False)
 
 disassembler = Disassembler(filename)
 debugger = Debugger(disassembler.functions)
 
 # ========== Initialization code ==========
 
-
-
-
-
+#@project.hook(0x4007fd, length=0)
+#def hook_merge(state):
+#    print(colored(" Filtering states", "cyan"))
+#    simgr.active = [simgr.active[-1]]
 
 # ========== Initialization code ==========
 
@@ -54,14 +55,18 @@ stash_commands = [
             ("sl", stash.list),
             ("sk", stash.kill),
             ("sr", stash.revive),
+            ("sra", stash.revive_all),
             ("sn", stash.name),
             ("si", stash.stdin),
             ("sia", stash.stdin_all),
             ("so", stash.stdout),
+            ("sfo", stash.filter_stdout),
             ("soa", stash.stdout_all)]
 
 util_commands = [
+            ("c", clear),
             ("q", exit)]
+
 
 def main():
     global simgr

@@ -49,9 +49,9 @@ class Debugger():
         self.watchpoints[addr] = (hit_count + 1, message)
         
         if message == "":    
-            print(colored(" [" + str(len(self.simgr.active)) + "|" + colored(str(len(self.simgr.deadended)), "red") + "]","yellow"), colored("{" + str(hit_count) + "}", "cyan"), " Reached watchpoint at " + hex(addr))
+            print(colored(" [" + str(len(self.simgr.active)) + "|" + colored(str(len(self.simgr.deadended)), "red") + colored("]", "yellow"), "yellow"), colored("{" + str(hit_count) + "}", "cyan"), " Reached watchpoint at " + hex(addr))
         else:
-            print(colored(" [" + str(len(self.simgr.active)) + "|" + colored(str(len(self.simgr.deadended)), "red") + "]","yellow"), colored("{" + str(hit_count) + "}", "cyan"), " " + message)
+            print(colored(" [" + str(len(self.simgr.active)) + "|" + colored(str(len(self.simgr.deadended)), "red") + colored("]", "yellow"), "yellow"), colored("{" + str(hit_count) + "}", "cyan"), " " + message)
 
     def debug_watch(self):
         addr = int(self.command[1], 16)

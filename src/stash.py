@@ -51,6 +51,23 @@ def stdin_all(main, command, simgr):
     if len(command) == 1:
         for state in simgr.active + simgr.deadended:
             print_decode(state.posix.dumps(0))
+
+def revive_all(main, command, simgr):
+    for state in simgr.deadended:
+        simgr.active.append(state)
+    simgr.deadended = []
+
+def filter_stdout(main, command, simgr):
+    if len(command) > 1:
+        i = 0
+        while i < len(simgr.active):
+            state = simgr.active[i]
+            if not command[1].encode() in state.posix.dumps(1):
+                simgr.deadended.append(state)
+                simgr.active.remove(state)
+                i -= 1
+            i += 1
+
 # ========== Utilities ========== #
 
 def get_name(state):
