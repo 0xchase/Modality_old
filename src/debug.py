@@ -25,7 +25,15 @@ class Debugger():
     def debug_explore_until(self):
         command = self.command
         simgr = self.simgr
-        state = simgr.active[0]
+        
+        old_active = []
+        old_deadended = []
+
+        for state in simgr.active:
+            old_active.append(state)
+
+        for state in simgr.deadended:
+            old_deadended.append(state)
 
         if "0x" in command[1]:
             addr = int(command[1], 16)
@@ -40,8 +48,16 @@ class Debugger():
             print(colored("Found " + str(len(simgr.active)) + " solutions", "green"))
         else:
             print(colored("Exploration failed", "red"))
-            state = old_state
-            simgr = project.factory.simgr(state)
+
+            print("Reverting state (currently a bit buggy)")
+
+            simgr.active = []
+            simgr.deadended = []
+
+            for state in old_active:
+                simgr.active.append(state)
+            for state in old_deadended:
+                simgr.deadended.append(state)
 
     def hook_watchpoint(self, state):
         addr = state.solver.eval(state.regs.rip)
