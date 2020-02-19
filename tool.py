@@ -15,18 +15,37 @@ sys.path.append("src/")
 import stash
 from debug import *
 from disass import *
+from printer import *
 from hooks import *
 from util import *
 
 print("Imported libraries")
 
+stdin = claripy.BVS("stdin", 8*16)
+argv = []
+argv.append(sys.argv[1])
+arg_num = 1
+
+for i in range(0, arg_num):
+    argv.append(claripy.BVS('sym_arg', 8*40))
+
+print(str(argv))
+
 filename = sys.argv[1]
 project = angr.Project(filename)
-state = project.factory.entry_state()
+state = project.factory.entry_state(args=argv, stdin=stdin)
 simgr = project.factory.simgr(state, veritesting=False)
 
 disassembler = Disassembler(filename)
 debugger = Debugger(disassembler.functions)
+printer = Printer()
+
+i = 0
+for b in stdin.chop(8):
+    if i == 7:
+        state.se.And(b == "\0")
+    else:
+        state.se.And(b >= ord(' '), b <= ord('~'))
 
 # ========== Initialization code ==========
 
@@ -63,6 +82,10 @@ stash_commands = [
             ("sfo", stash.filter_stdout),
             ("soa", stash.stdout_all)]
 
+print_commands = [
+            ("pa", printer.args)
+            ]
+
 util_commands = [
             ("c", clear),
             ("q", exit)]
@@ -72,6 +95,7 @@ def main():
     global simgr
     global debugger
     global project
+    global argv
 
     while True:
         print(colored("[" + get_addr() + "|", "yellow") + colored(str(len(simgr.deadended)), "red") + colored("]> ", "yellow"), end='')
@@ -93,6 +117,11 @@ def main():
                 function(lambda: null, command, simgr)
         for cmd, function in util_commands:
             if cmd == command[0]:
+                function()
+        for cmd, function in print_commands:
+            if cmd == command[0]:
+                printer.args = argv
+                printer.simgr = simgr
                 function()
 
 def get_addr():
