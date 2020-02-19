@@ -83,7 +83,12 @@ stash_commands = [
             ("soa", stash.stdout_all)]
 
 print_commands = [
-            ("pa", printer.args)
+            ("pa", printer.args),
+            ("paa", printer.args_all),
+            ("po", printer.stdout),
+            ("poa", printer.stdout_all),
+            ("pi", printer.stdin),
+            ("pia", printer.stdin_all)
             ]
 
 util_commands = [
@@ -120,6 +125,7 @@ def main():
                 function()
         for cmd, function in print_commands:
             if cmd == command[0]:
+                printer.command = command
                 printer.args = argv
                 printer.simgr = simgr
                 function()
