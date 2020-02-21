@@ -60,6 +60,7 @@ class Hooks():
         self.project = project
 
         temp_project = angr.Project(filename, auto_load_libs=False)
+        #return
         cfg_fast = temp_project.analyses.CFGFast()
         self.fast_project = temp_project
 
