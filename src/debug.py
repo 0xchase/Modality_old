@@ -121,21 +121,9 @@ class Debugger():
 
         temp_project = self.angr.Project(self.filename, auto_load_libs=False)
 
-        cfg_fast = temp_project.analyses.CFGFast(symbols=False, start_at_entry=False, force_complete_scan=False, function_prologues=False, function_starts=[0x400886])
-
-        loop_finder = temp_project.analyses.LoopFinder([cfg_fast.functions[0x400886]])
-
-        entries = []
-
-        print("Found loops: ")
-        for loop in loop_finder.loops:
-            entries.append(loop.entry.addr)
-            print(" > " + hex(loop.entry.addr) + " of " + str(len(loop.body_nodes)) + " blocks")
-
         print("Debug explore until loop")
         old_state = state
-        simgr.explore(find=entries).unstash(from_stash="found", to_stash="active")
-
+        simgr.explore(find=self.loop_entry_addrs).unstash(from_stash="found", to_stash="active")
 
         if simgr.active:
             print(colored("Found " + str(len(simgr.active)) + " solutions", "green"))

@@ -18,6 +18,7 @@ from disass import *
 from printer import *
 from hooks import *
 from util import *
+from hooks import *
 
 print("Imported libraries")
 
@@ -39,6 +40,11 @@ simgr = project.factory.simgr(state, veritesting=False)
 disassembler = Disassembler(filename)
 debugger = Debugger(disassembler.functions)
 printer = Printer()
+hooks = Hooks()
+hooks.setup_loops(angr, project, simgr, filename, colored)
+hooks.functions = disassembler.functions
+hooks.library_functions = disassembler.library_functions
+hooks.setup_functions()
 
 i = 0
 for b in stdin.chop(8):
@@ -48,36 +54,6 @@ for b in stdin.chop(8):
         state.solver.And(b >= ord(' '), b <= ord('~'))
 
 # ========== Initialization code ==========
-
-loops_visited = {}
-def loop_start(state):
-    global loops_visited
-    count = loops_visited[state.addr]
-    if count == 0:
-        print("Starting loop at " + hex(state.addr))
-    else:
-        print(colored(" [" + str(len(simgr.active)) + "|" + colored(str(len(simgr.deadended)), "red") + colored("]", "yellow"), "yellow"), colored("{" + str(loops_visited[state.addr]) + "}", "cyan"), " Looping at " + hex(state.addr))
-    loops_visited[state.addr] += 1
-
-temp_project = angr.Project(filename, auto_load_libs=False)
-cfg_fast = temp_project.analyses.CFGFast()
-
-addrs = []
-for f in cfg_fast.functions:
-    addrs.append(f)
-
-functions = []
-for a in addrs:
-    functions.append(cfg_fast.functions[a])
-
-loops = temp_project.analyses.LoopFinder(functions=functions).loops
-
-print("Found " + str(len(loops)) + " loops")
-
-loop_entry_addrs = []
-for loop in loops:
-    project.hook(loop.entry.addr, loop_start) 
-    loops_visited[loop.entry.addr] = 0
 
 #@project.hook(0x4007fd, length=0)
 #def hook_merge(state):
@@ -136,6 +112,7 @@ def main():
     global debugger
     global project
     global argv
+    global hooks
 
     while True:
         print(colored("[" + get_addr() + "|", "yellow") + colored(str(len(simgr.deadended)), "red") + colored("]> ", "yellow"), end='')
@@ -148,6 +125,7 @@ def main():
                 debugger.command = command
                 debugger.filename = filename
                 debugger.angr = angr
+                debugger.loop_entry_addrs = hooks.loop_entry_addrs
                 function()
         for cmd, function in disassembler_commands:
             if cmd == command[0]:

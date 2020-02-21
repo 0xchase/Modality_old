@@ -15,6 +15,12 @@ class Disassembler():
             if "xref" not in temp_names[i] and temp_addrs[i] != "" and "imp" not in temp_names[i]:
                 self.functions.append((hex(int(temp_addrs[i], 16)), temp_names[i]))
 
+        self.library_functions = []
+
+        for i in range(0, len(temp_addrs)):
+            if "xref" not in temp_names[i] and temp_addrs[i] != "" and "imp" in temp_names[i]:
+                self.library_functions.append((hex(int(temp_addrs[i], 16)), temp_names[i]))
+
         self.r = r
 
     def disassemble(self):
