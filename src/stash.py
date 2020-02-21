@@ -57,16 +57,38 @@ def revive_all(main, command, simgr):
         simgr.active.append(state)
     simgr.deadended = []
 
-def filter_stdout(main, command, simgr):
+def revive_stdout(main, command, simgr):
+    if len(command) > 1:
+        i = 0
+        while i < len(simgr.deadended):
+            state = simgr.deadended[i]
+            if command[1].encode() in state.posix.dumps(1):
+                simgr.active.append(state)
+                simgr.deadended.remove(state)
+                i -= 1
+            i += 1
+
+def kill_stdout(main, command, simgr):
     if len(command) > 1:
         i = 0
         while i < len(simgr.active):
             state = simgr.active[i]
-            if not command[1].encode() in state.posix.dumps(1):
+            if command[1].encode() in state.posix.dumps(1):
                 simgr.deadended.append(state)
                 simgr.active.remove(state)
                 i -= 1
             i += 1
+
+def kill_all(main, command, simgr):
+    print("Killing all states")
+    i = 0
+    while i < len(simgr.active):
+        state = simgr.active[i]
+        simgr.deadended.append(state)
+        simgr.active.remove(state)
+
+def auto_kill_stdout(main, command, simgr):
+    print("Auto killing states with output")
 
 # ========== Utilities ========== #
 

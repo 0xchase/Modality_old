@@ -43,11 +43,41 @@ printer = Printer()
 i = 0
 for b in stdin.chop(8):
     if i == 7:
-        state.se.And(b == "\0")
+        state.solver.And(b == "\0")
     else:
-        state.se.And(b >= ord(' '), b <= ord('~'))
+        state.solver.And(b >= ord(' '), b <= ord('~'))
 
 # ========== Initialization code ==========
+
+loops_visited = {}
+def loop_start(state):
+    global loops_visited
+    count = loops_visited[state.addr]
+    if count == 0:
+        print("Starting loop at " + hex(state.addr))
+    else:
+        print(colored(" [" + str(len(simgr.active)) + "|" + colored(str(len(simgr.deadended)), "red") + colored("]", "yellow"), "yellow"), colored("{" + str(loops_visited[state.addr]) + "}", "cyan"), " Looping at " + hex(state.addr))
+    loops_visited[state.addr] += 1
+
+temp_project = angr.Project(filename, auto_load_libs=False)
+cfg_fast = temp_project.analyses.CFGFast()
+
+addrs = []
+for f in cfg_fast.functions:
+    addrs.append(f)
+
+functions = []
+for a in addrs:
+    functions.append(cfg_fast.functions[a])
+
+loops = temp_project.analyses.LoopFinder(functions=functions).loops
+
+print("Found " + str(len(loops)) + " loops")
+
+loop_entry_addrs = []
+for loop in loops:
+    project.hook(loop.entry.addr, loop_start) 
+    loops_visited[loop.entry.addr] = 0
 
 #@project.hook(0x4007fd, length=0)
 #def hook_merge(state):
@@ -59,11 +89,15 @@ for b in stdin.chop(8):
 debugger_commands = [
             ("dc", debugger.debug_continue),
             ("dcu", debugger.debug_continue_until),
+            ("dco", debugger.debug_continue_output),
             ("ds", debugger.debug_step),
             ("dw", debugger.debug_watch),
-            ("dcub", debugger.debug_continue_until_branch),
+            ("dcb", debugger.debug_continue_until_branch),
             ("deu", debugger.debug_explore_until),
-            ("deuo", debugger.debug_explore_until_stdout),
+            ("deul", debugger.debug_explore_until_loop),
+            ("del", debugger.debug_explore_loop),
+            ("deud", debugger.debug_explore_until_dfs),
+            ("deo", debugger.debug_explore_stdout),
             ("dr", debugger.debug_registers),
             ("doo", debugger.debug_initialize)]
 
@@ -73,13 +107,15 @@ disassembler_commands = [
 stash_commands = [
             ("sl", stash.list),
             ("sk", stash.kill),
+            ("sko", stash.kill_stdout),
+            ("ska", stash.kill_all),
             ("sr", stash.revive),
+            ("sro", stash.revive_stdout),
             ("sra", stash.revive_all),
             ("sn", stash.name),
             ("si", stash.stdin),
             ("sia", stash.stdin_all),
             ("so", stash.stdout),
-            ("sfo", stash.filter_stdout),
             ("soa", stash.stdout_all)]
 
 print_commands = [
@@ -88,8 +124,7 @@ print_commands = [
             ("po", printer.stdout),
             ("poa", printer.stdout_all),
             ("pi", printer.stdin),
-            ("pia", printer.stdin_all)
-            ]
+            ("pia", printer.stdin_all)]
 
 util_commands = [
             ("c", clear),
@@ -111,6 +146,8 @@ def main():
                 debugger.project = project
                 debugger.simgr = simgr
                 debugger.command = command
+                debugger.filename = filename
+                debugger.angr = angr
                 function()
         for cmd, function in disassembler_commands:
             if cmd == command[0]:

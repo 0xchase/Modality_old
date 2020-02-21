@@ -1,6 +1,7 @@
 import sys
 import claripy
 from termcolor import colored
+#import angr
 
 class Debugger():
     def __init__(self, f):
@@ -21,6 +22,52 @@ class Debugger():
             num = int(self.command[1])
             for i in range(0, num):
                 self.simgr.step()
+
+    # CURRENTLY BROKEN
+    def debug_explore_stdout(self):
+        print("Exploring until stdout " + self.command[1])
+        self.simgr.explore(find=lambda s: self.command[1].strip().encode() in s.posix.dumps(1))
+
+    def debug_explore_until_dfs(self):
+        print("Exploring using DFS")
+        command = self.command
+        simgr = self.simgr
+        simgr.use_technique(self.angr.exploration_techniques.dfs.DFS())
+        
+        old_active = []
+        old_deadended = []
+
+        for state in simgr.active:
+            old_active.append(state)
+
+        for state in simgr.deadended:
+            old_deadended.append(state)
+
+        if "0x" in command[1]:
+            addr = int(command[1], 16)
+        else:
+            addr = int(self.symbol_to_address(command[1]), 16)
+
+        simgr.use_technique(self.angr.exploration_techniques.explorer.Explorer())
+
+        print("Debug explore until " + hex(addr))
+        old_state = state
+        simgr.explore(find=addr).unstash(from_stash="found", to_stash="active")
+
+        if simgr.active:
+            print(colored("Found " + str(len(simgr.active)) + " solutions", "green"))
+        else:
+            print(colored("Exploration failed", "red"))
+
+            print("Reverting state (currently a bit buggy)")
+
+            simgr.active = []
+            simgr.deadended = []
+
+            for state in old_active:
+                simgr.active.append(state)
+            for state in old_deadended:
+                simgr.deadended.append(state)
 
     def debug_explore_until(self):
         command = self.command
@@ -43,6 +90,121 @@ class Debugger():
         print("Debug explore until " + hex(addr))
         old_state = state
         simgr.explore(find=addr).unstash(from_stash="found", to_stash="active")
+
+        if simgr.active:
+            print(colored("Found " + str(len(simgr.active)) + " solutions", "green"))
+        else:
+            print(colored("Exploration failed", "red"))
+
+            print("Reverting state (currently a bit buggy)")
+
+            simgr.active = []
+            simgr.deadended = []
+
+            for state in old_active:
+                simgr.active.append(state)
+            for state in old_deadended:
+                simgr.deadended.append(state)
+
+    def debug_explore_until_loop(self):
+        command = self.command
+        simgr = self.simgr
+        
+        old_active = []
+        old_deadended = []
+
+        for state in simgr.active:
+            old_active.append(state)
+
+        for state in simgr.deadended:
+            old_deadended.append(state)
+
+        temp_project = self.angr.Project(self.filename, auto_load_libs=False)
+
+        cfg_fast = temp_project.analyses.CFGFast(symbols=False, start_at_entry=False, force_complete_scan=False, function_prologues=False, function_starts=[0x400886])
+
+        loop_finder = temp_project.analyses.LoopFinder([cfg_fast.functions[0x400886]])
+
+        entries = []
+
+        print("Found loops: ")
+        for loop in loop_finder.loops:
+            entries.append(loop.entry.addr)
+            print(" > " + hex(loop.entry.addr) + " of " + str(len(loop.body_nodes)) + " blocks")
+
+        print("Debug explore until loop")
+        old_state = state
+        simgr.explore(find=entries).unstash(from_stash="found", to_stash="active")
+
+
+        if simgr.active:
+            print(colored("Found " + str(len(simgr.active)) + " solutions", "green"))
+        else:
+            print(colored("Exploration failed", "red"))
+
+            print("Reverting state (currently a bit buggy)")
+
+            simgr.active = []
+            simgr.deadended = []
+
+            for state in old_active:
+                simgr.active.append(state)
+            for state in old_deadended:
+                simgr.deadended.append(state)
+
+    def loop_hook(self, state):
+        loop = state.loop_data.current_loop
+        #analysis = self.project.analyses.LoopAnalysis(loop, None)
+        #print(str(analysis))
+        #print(str(state.loop_data.header_trip_counts))
+        sys.stdout.write("\b")
+        sys.stdout.write("=>")
+        sys.stdout.flush()
+
+    def debug_explore_loop(self):
+        command = self.command
+        simgr = self.simgr
+        
+        old_active = []
+        old_deadended = []
+
+        for state in simgr.active:
+            old_active.append(state)
+
+        for state in simgr.deadended:
+            old_deadended.append(state)
+
+        temp_project = self.angr.Project(self.filename, auto_load_libs=False)
+
+        cfg_fast = temp_project.analyses.CFGFast()
+        addrs = []
+        for f in cfg_fast.functions:
+            addrs.append(f)
+        functions = []
+        for a in addrs:
+            functions.append(cfg_fast.functions[a])
+
+        loops = temp_project.analyses.LoopFinder(functions=functions).loops
+        
+        simgr.use_technique(self.angr.exploration_techniques.loop_seer.LoopSeer(cfg=cfg_fast, functions=functions, loops=loops, use_header=False, bound=None, bound_reached=None, discard_stash='deadended'))
+        #analysis = temp_project.analyses.LoopAnalysis(loop_finder.loops[0], None)
+        #print(str(analysis))
+        self.project.hook(0x4008f4, self.loop_hook, length=0)
+
+        print("Starting loop")
+        sys.stdout.write(" [=")
+        sys.stdout.flush()
+
+        simgr.explore(find=0x4008fa).unstash(from_stash="found", to_stash="active")
+        print("]")
+
+        simgr.use_technique(self.angr.exploration_techniques.explorer.Explorer())
+
+        exit()
+
+        print("Debug explore until loop")
+        old_state = state
+        simgr.explore(find=entries).unstash(from_stash="found", to_stash="active")
 
         if simgr.active:
             print(colored("Found " + str(len(simgr.active)) + " solutions", "green"))
@@ -100,10 +262,23 @@ class Debugger():
         
     
     def debug_continue_until(self):
-        print("Debug continue until self, main")
-        state.inspect.b("call")
-        #simgr.run(until=lambda sm: sm.active[0].addr == 0x400815)
-        self.simgr.run()
+        print("Debug continue until " + self.command[1])
+        #self.simgr.run(until=lambda sm: state.addr == int(self.command[1], 16) for state in sm.active) 
+        print("Unimplemented")
+
+    def debug_continue_output(self):
+        print("Debug continue until output")
+        output = self.simgr.active[0].posix.dumps(1)
+        try:
+            self.simgr.run(until=lambda sm: sm.active[0].posix.dumps(1) != output)
+        except:
+            print("Deadended")
+
+        output = self.simgr.active[0].posix.dumps(1)
+        try:
+            print(output.decode())
+        except:
+            print(str(output))
 
     def debug_continue_until_call(self):
         print("Debug continue until self, main")
