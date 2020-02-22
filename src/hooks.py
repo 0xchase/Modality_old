@@ -9,9 +9,8 @@ class Hooks():
     loops_visited = {}
     loop_entry_addrs = []
     loop_exit_addrs = []
+    discard_deadended = False
 
-    def print_disass_data(self, s):
-        return s
 
     def function_hook(self, state):
         name = "function"
@@ -34,12 +33,23 @@ class Hooks():
         for addr, func in self.library_functions:
             self.project.hook(int(addr, 16), self.library_function_hook)
 
+    def print_disass_data(self, s, state):
+        if "rbp" in s:
+            if "-" in s:
+                sub = int(str(s.split("-")[1]).replace(" ", "").replace("]", ""), 16)
+                return str(state.memory.load(state.regs.rbp - sub, 4))
+            else:
+                return str(state.memory.load(state.regs.rbp, 4))
+        else:
+            return s
 
     def loop_hook(self, state):
         simgr = self.simgr
         loops_visited = self.loops_visited
         count = loops_visited[state.addr]
         block = self.project.factory.block(state.addr)
+        if self.discard_deadended:
+            simgr.deadended = []
         #block.pp()
 
         cmp_m = block.capstone.insns[0].mnemonic
@@ -47,7 +57,7 @@ class Hooks():
 
         cmp_str = ""
         if "cmp" in cmp_m:
-            cmp_str = "[cmp " + self.print_disass_data(cmp_op[0]) + ", " + self.print_disass_data(cmp_op[1]) + "]"
+            cmp_str = "[cmp " + self.print_disass_data(cmp_op[0], state) + ", " + self.print_disass_data(cmp_op[1], state) + "]"
         if count == 0:
             print(self.colored("Starting loop at " + hex(state.addr), "yellow"))
         else:
