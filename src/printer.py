@@ -6,14 +6,15 @@ class Printer():
 
     def args(self):
         for s in self.simgr.active:
-            for i in range(1, len(self.args)):
-                result = s.solver.eval(self.args[i], cast_to=bytes)
+            for i in range(1, len(self.argv1)):
+                print(str(self.argv1[i]) + ": ", end='')
+                result = s.solver.eval(self.argv1[i], cast_to=bytes)
                 self.print_decode(result)
 
     def args_all(self):
         for s in self.simgr.active + self.simgr.deadended:
-            for i in range(1, len(self.args)):
-                result = s.solver.eval(self.args[i], cast_to=bytes)
+            for i in range(1, len(self.argv1)):
+                result = s.solver.eval(self.argv1[i], cast_to=bytes)
                 self.print_decode(result)
 
     def stdout(self):

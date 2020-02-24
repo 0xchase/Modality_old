@@ -3,7 +3,7 @@
 import sys
 
 if len(sys.argv) < 2:
-    print("Usage: ./tool.py <binary>")
+    print("Usage: ./tool.py <binary> <arg count>")
     exit()
 
 import angr
@@ -24,11 +24,12 @@ print("Imported libraries")
 
 stdin = claripy.BVS("stdin", 8*16)
 argv = []
+
 argv.append(sys.argv[1])
 arg_num = 1
 
-for i in range(0, arg_num):
-    argv.append(claripy.BVS('sym_arg', 8*40))
+if len(sys.argv) == 3:
+    arg_num = int(sys.argv[2])
 
 print(str(argv))
 
@@ -36,6 +37,20 @@ filename = sys.argv[1]
 project = angr.Project(filename)
 state = project.factory.entry_state(args=argv, stdin=stdin)
 simgr = project.factory.simgr(state, veritesting=False)
+
+
+#for i in range(0, arg_num):
+#    for b in argv[-1].chop(8):
+#        state.solver.And(b >= ord(' '), b <= ord('~'))
+
+def initialize(pr, st, si):
+    global project
+    global state
+    global simgr
+
+    project = pr
+    state = st
+    simgr = si
 
 disassembler = Disassembler(filename)
 debugger = Debugger(disassembler.functions)
@@ -46,12 +61,14 @@ hooks.functions = disassembler.functions
 hooks.library_functions = disassembler.library_functions
 hooks.setup_functions()
 
-i = 0
+#for b in stdin.chop(8):
+#    state.solver.And(b >= ord(' '), b <= ord('~'))
+
 for b in stdin.chop(8):
-    if i == 7:
-        state.solver.And(b == "\0")
-    else:
-        state.solver.And(b >= ord(' '), b <= ord('~'))
+    #state.solver.add(b > 0x20)
+    #state.solver.add(b < 0x7f)
+    state.solver.add(b > 43)
+    state.solver.add(b < 127)
 
 # ========== Initialization code ==========
 
@@ -107,7 +124,7 @@ util_commands = [
             ("q", exit)]
 
 
-def main():
+def command_line():
     global simgr
     global debugger
     global project
@@ -141,8 +158,9 @@ def main():
         for cmd, function in print_commands:
             if cmd == command[0]:
                 printer.command = command
-                printer.args = argv
+                printer.argv1 = argv
                 printer.simgr = simgr
+                printer.stdin = stdin
                 function()
 
 def get_addr():
@@ -155,5 +173,5 @@ def get_addr():
         ret += str(len(simgr.active))
     return ret
 
-main()
-
+if __name__ == "__main__":
+    command_line()
