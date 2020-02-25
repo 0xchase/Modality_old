@@ -1,7 +1,7 @@
 # Modality Debugger
 
 This project is in it's early stages and will only work on some binaries.
----
+
 # Todo
 ## Debugger
  - Add avoid commands
@@ -20,15 +20,11 @@ This project is in it's early stages and will only work on some binaries.
 ## Other
  - Get working as scripting engine
  - Clean up code
+ - Start radare2 plugin version
 
 ## Pre-built hooks
  - Check for string equality
 
 ## Pre-built constraints
  - Constrain on strlen()
-
-## Other goals
- - Scripting ability. Works like normal angr script, but can enter debug mode
- - Eventually turn into r2 plugin, with commands to control execution
- - Hook memory writes, returns, etc
 
