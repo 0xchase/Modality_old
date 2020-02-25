@@ -112,6 +112,7 @@ disassembler_commands = [
 stash_commands = [
             ("sl", stash.list),
             ("sk", stash.kill),
+            ("ss", stash.save),
             ("sko", stash.kill_stdout),
             ("ska", stash.kill_all),
             ("sr", stash.revive),

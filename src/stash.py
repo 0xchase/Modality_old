@@ -13,6 +13,18 @@ def kill(main, command, simgr):
         simgr.deadended.append(simgr.active[num])
         simgr.active.remove(simgr.active[num])
         
+def save(main, command, simgr):
+    if "0x" in command[1]:
+        addr = int(command[1], 16)
+        simgr.move(from_stash='active', to_stash='deadended', filter_func=lambda s: s.addr != addr)
+    else:
+        num = int(command[1])
+        temp = simgr.active[num]
+        for s in simgr.active:
+            simgr.deadended.append(s)
+        simgr.active = []
+        simgr.active.append(temp)
+        simgr.deadended.remove(temp)
 
 def revive(main, command, simgr):
     addr = int(command[1], 16)
