@@ -217,11 +217,11 @@ class Debugger():
         self.watchpoints[addr] = (hit_count + 1, message)
         
         if message == "":    
-            data = colored(" [" + str(len(self.simgr.active)) + "|" + colored(str(len(self.simgr.deadended)), "red") + colored("]", "yellow"), "yellow"), colored("{" + str(hit_count) + "}", "cyan"), " Reached watchpoint at " + hex(addr)
+            data = colored(" [" + str(len(self.simgr.active)) + "|" + colored(str(len(self.simgr.deadended)), "red") + colored("]", "yellow"), "yellow"), colored("{Hit count: " + str(hit_count) + "}", "cyan"), " Reached watchpoint at " + hex(addr)
             state.history_arr.append(data)
             print(data)
         else:
-            data = colored(" [" + str(len(self.simgr.active)) + "|" + colored(str(len(self.simgr.deadended)), "red") + colored("]", "yellow"), "yellow"), colored("{" + str(hit_count) + "}", "cyan"), " " + message
+            data = colored(" [" + str(len(self.simgr.active)) + "|" + colored(str(len(self.simgr.deadended)), "red") + colored("]", "yellow"), "yellow"), colored("{Hit count: " + str(hit_count) + "}", "cyan"), " " + message
             state.history_arr.append(data)
             print(data)
 
@@ -234,6 +234,29 @@ class Debugger():
             self.watchpoints[addr] = (0, " ".join(self.command[2:]))
         else:
             self.watchpoints[addr] = (0, "")
+
+    def hook_mergepoint(self, state):
+        addr = state.solver.eval(state.regs.rip)
+        simgr = self.simgr
+        merge_count = 0
+        
+        i = 0
+        j = len(simgr.active)
+        while len(simgr.active) > 1 and i < 30:
+            s_merged, flag, anything_merged = simgr.active[0].merge(simgr.active[1])
+            i += 1
+            if anything_merged:
+                merge_count += 1
+                simgr.active.remove(simgr.active[0])
+                simgr.active[0] = s_merged
+            else:
+                print("Merge failed")
+        print(colored(" [" + str(len(self.simgr.active)) + "|" + colored(str(len(self.simgr.deadended)), "red") + colored("]", "yellow"), "yellow"), colored("{Merging " + str(merge_count) + " states}", "cyan"), " Merging states at " + hex(addr))
+
+    def debug_merge(self):
+        addr = int(self.command[1], 16)
+        print("Adding mergepoint at " + hex(addr))
+        self.project.hook(addr, self.hook_mergepoint, length=0)
 
     def find(self, state):
         return self.find_string in state.posix.dumps(1)

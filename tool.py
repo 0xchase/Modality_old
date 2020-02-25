@@ -97,6 +97,7 @@ debugger_commands = [
             ("dco", debugger.debug_continue_output),
             ("ds", debugger.debug_step),
             ("dw", debugger.debug_watch),
+            ("dm", debugger.debug_merge),
             ("dcb", debugger.debug_continue_until_branch),
             ("deu", debugger.debug_explore_until),
             ("deul", debugger.debug_explore_until_loop),

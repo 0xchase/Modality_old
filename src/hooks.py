@@ -61,7 +61,7 @@ class Hooks():
         if count == 0:
             print(self.colored("Starting loop at " + hex(state.addr), "yellow"))
         else:
-            print(self.colored(" [" + str(len(simgr.active)) + "|" + self.colored(str(len(simgr.deadended)), "red") + self.colored("]", "yellow"), "yellow"), self.colored("{" + str(loops_visited[state.addr]) + "}", "cyan"), " Looping at " + hex(state.addr) + " " + cmp_str)
+            print(self.colored(" [" + str(len(simgr.active)) + "|" + self.colored(str(len(simgr.deadended)), "red") + self.colored("]", "yellow"), "yellow"), self.colored("{Loop count: " + str(loops_visited[state.addr]) + "}", "cyan"), " Looping at " + hex(state.addr) + " " + cmp_str)
         loops_visited[state.addr] += 1
 
     def setup_loops(self, angr, project, simgr, filename,colored):
