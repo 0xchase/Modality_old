@@ -28,8 +28,13 @@ argv = []
 argv.append(sys.argv[1])
 arg_num = 1
 
-if len(sys.argv) == 3:
+if len(sys.argv) > 2:
+    print("Symbolizing arugments")
     arg_num = int(sys.argv[2])
+
+for i in range(0, arg_num):
+    sym_arg = claripy.BVS("sym_arg" + str(i), 16*8)
+    argv.append(sym_arg)
 
 print(str(argv))
 
@@ -38,6 +43,13 @@ project = angr.Project(filename)
 state = project.factory.entry_state(args=argv, stdin=stdin)
 simgr = project.factory.simgr(state, veritesting=False)
 
+state.history_arr = []
+
+for sym_arg in argv[1:]:
+    print("Constraining argument to ascii range")
+    for b in sym_arg.chop(8):
+        state.solver.And(b >= ord(' '), b <= ord('~'))
+        #state.solver.add(b != '\x80')
 
 #for i in range(0, arg_num):
 #    for b in argv[-1].chop(8):
@@ -117,6 +129,12 @@ print_commands = [
             ("po", printer.stdout),
             ("poa", printer.stdout_all),
             ("pi", printer.stdin),
+            ("ps", printer.states),
+            ("psh", printer.states_history),
+            ("psc", printer.states_constraints),
+            ("pse", printer.states_events),
+            ("psp", printer.states_path),
+            ("pst", printer.states_tree),
             ("pia", printer.stdin_all)]
 
 util_commands = [

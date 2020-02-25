@@ -17,9 +17,11 @@ class Debugger():
 
     def debug_step(self):
         if len(self.command) == 1:
+            print("Single step")
             self.simgr.step()
         else:
             num = int(self.command[1])
+            print("Multi step")
             for i in range(0, num):
                 self.simgr.step()
 
@@ -215,9 +217,13 @@ class Debugger():
         self.watchpoints[addr] = (hit_count + 1, message)
         
         if message == "":    
-            print(colored(" [" + str(len(self.simgr.active)) + "|" + colored(str(len(self.simgr.deadended)), "red") + colored("]", "yellow"), "yellow"), colored("{" + str(hit_count) + "}", "cyan"), " Reached watchpoint at " + hex(addr))
+            data = colored(" [" + str(len(self.simgr.active)) + "|" + colored(str(len(self.simgr.deadended)), "red") + colored("]", "yellow"), "yellow"), colored("{" + str(hit_count) + "}", "cyan"), " Reached watchpoint at " + hex(addr)
+            state.history_arr.append(data)
+            print(data)
         else:
-            print(colored(" [" + str(len(self.simgr.active)) + "|" + colored(str(len(self.simgr.deadended)), "red") + colored("]", "yellow"), "yellow"), colored("{" + str(hit_count) + "}", "cyan"), " " + message)
+            data = colored(" [" + str(len(self.simgr.active)) + "|" + colored(str(len(self.simgr.deadended)), "red") + colored("]", "yellow"), "yellow"), colored("{" + str(hit_count) + "}", "cyan"), " " + message
+            state.history_arr.append(data)
+            print(data)
 
     def debug_watch(self):
         addr = int(self.command[1], 16)
