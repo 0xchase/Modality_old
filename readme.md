@@ -3,13 +3,19 @@
 This project is in it's early stages and will only work on some binaries.
 
 # Todo
+
+PRIORITY - implement callFunction - gives args necessary to return specific value
+Change printing format to have [DEBUG] [PRINT] [HOOK] etc
+
 ## Debugger
  - Add avoid commands
+ - der command broken
  - PEDA like view for debugging. Commands to print regs and stack
 
 ## Hooks
  - When hooking function calls, print args
  - When hit calls like strlen(), choose to simulate or constrain
+ - Automatically hook unknown windows functions. Print and skip, or lookup return type and symbolize.
 
 ## State
  - Track history for each state (currently not working)

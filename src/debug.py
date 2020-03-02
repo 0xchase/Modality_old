@@ -25,6 +25,10 @@ class Debugger():
             for i in range(0, num):
                 self.simgr.step()
 
+    def restore_state(self, simgr1):
+        simgr1.active = self.active_backup
+        simgr1.deadended = self.deadended_backup
+
     # CURRENTLY BROKEN
     def debug_explore_stdout(self):
         print("Exploring until stdout " + self.command[1])
@@ -71,18 +75,30 @@ class Debugger():
             for state in old_deadended:
                 simgr.deadended.append(state)
 
+    def debug_print(self):
+        print("[" + "-"*30 + "registers" + "-"*30 + "]")
+        print("RAX: " + str(self.simgr.active[0].regs.rax))
+        print("RAX: " + str(self.simgr.active[0].regs.rax))
+        print("RAX: " + str(self.simgr.active[0].regs.rax))
+        print("RAX: " + str(self.simgr.active[0].regs.rax))
+        print("RAX: " + str(self.simgr.active[0].regs.rax))
+        print("RAX: " + str(self.simgr.active[0].regs.rax))
+        print("RAX: " + str(self.simgr.active[0].regs.rax))
+        print("RAX: " + str(self.simgr.active[0].regs.rax))
+        print("RAX: " + str(self.simgr.active[0].regs.rax))
+        print("[" + "-"*30 + "code" + "-"*30 + "]")
+        print("some code here")
+        print("[" + "-"*30 + "stack" + "-"*30 + "]")
+        print("the stack here")
+        print("[" + "-"*30 + "stack" + "-"*30 + "]")
+        print("[" + "-"*30 + "    " + "-"*30 + "]")
+
     def debug_explore_until(self):
         command = self.command
         simgr = self.simgr
         
-        old_active = []
-        old_deadended = []
-
-        for state in simgr.active:
-            old_active.append(state)
-
-        for state in simgr.deadended:
-            old_deadended.append(state)
+        self.active_backup = simgr.active.copy()
+        self.deadended_backup = simgr.deadended.copy()
 
         if "0x" in command[1]:
             addr = int(command[1], 16)
@@ -90,57 +106,32 @@ class Debugger():
             addr = int(self.symbol_to_address(command[1]), 16)
 
         print("Debug explore until " + hex(addr))
-        old_state = state
         simgr.explore(find=addr).unstash(from_stash="found", to_stash="active")
 
         if simgr.active:
             print(colored("Found " + str(len(simgr.active)) + " solutions", "green"))
         else:
-            print(colored("Exploration failed", "red"))
+            print(colored("Exploration failed, use der to restore", "red"))
 
-            print("Reverting state (currently a bit buggy)")
-
-            simgr.active = []
-            simgr.deadended = []
-
-            for state in old_active:
-                simgr.active.append(state)
-            for state in old_deadended:
-                simgr.deadended.append(state)
+    def debug_explore_revert(self):
+        print("Restoring state")
+        self.simgr.active = self.active_backup
+        self.simgr.deadended_backup = self.deadended_backup
 
     def debug_explore_until_loop(self):
         command = self.command
         simgr = self.simgr
         
-        old_active = []
-        old_deadended = []
-
-        for state in simgr.active:
-            old_active.append(state)
-
-        for state in simgr.deadended:
-            old_deadended.append(state)
-
+        self.save_state(simgr)
         temp_project = self.angr.Project(self.filename, auto_load_libs=False)
 
         print("Debug explore until loop")
-        old_state = state
         simgr.explore(find=self.loop_entry_addrs).unstash(from_stash="found", to_stash="active")
 
         if simgr.active:
             print(colored("Found " + str(len(simgr.active)) + " solutions", "green"))
         else:
             print(colored("Exploration failed", "red"))
-
-            print("Reverting state (currently a bit buggy)")
-
-            simgr.active = []
-            simgr.deadended = []
-
-            for state in old_active:
-                simgr.active.append(state)
-            for state in old_deadended:
-                simgr.deadended.append(state)
 
     def loop_hook(self, state):
         loop = state.loop_data.current_loop
@@ -235,6 +226,43 @@ class Debugger():
         else:
             self.watchpoints[addr] = (0, "")
 
+    def debug_registers(self):
+        for state in self.simgr.active:
+            print("State at " + str(state.regs.rip) + ":")
+            if len(str(state.regs.rax)) < 50:
+                print("  rax = " + str(state.regs.rax))
+            else:
+                print("  rax = <symbolic value>")
+            if len(str(state.regs.rbx)) < 50:
+                print("  rbx = " + str(state.regs.rbx))
+            else:
+                print("  rbx = <symbolic value>")
+            if len(str(state.regs.rcx)) < 50:
+                print("  rcx = " + str(state.regs.rcx))
+            else:
+                print("  rcx = <symbolic value>")
+            if len(str(state.regs.rdx)) < 50:
+                print("  rdx = " + str(state.regs.rdx))
+            else:
+                print("  rdx = <symbolic value>")
+            if len(str(state.regs.rsi)) < 50:
+                print("  rsi = " + str(state.regs.rsi))
+            else:
+                print("  rsi = <symbolic value>")
+            if len(str(state.regs.rdi)) < 50:
+                print("  rdi = " + str(state.regs.rdi))
+            else:
+                print("  rdi = <symbolic value>")
+            if len(str(state.regs.rsp)) < 50:
+                print("  rsp = " + str(state.regs.rsp))
+            else:
+                print("  rsp = <symbolic value>")
+            if len(str(state.regs.rbp)) < 50:
+                print("  rbp = " + str(state.regs.rbp))
+            else:
+                print("  rbp = <symbolic value>")
+
+
     def hook_mergepoint(self, state):
         addr = state.solver.eval(state.regs.rip)
         simgr = self.simgr
@@ -304,8 +332,19 @@ class Debugger():
         self.simgr.run()
 
     def debug_continue_until_branch(self):
-        while len(self.simgr.active) == 1:
-            self.simgr.step()
+        if len(self.command) == 1:
+            while len(self.simgr.active) == 1:
+                self.simgr.step()
+        else:
+            i = 0
+            total = int(self.command[1])
+            while len(self.simgr.active) == 1:
+                self.simgr.step()
+                if i % 10 == 0:
+                    num = int(i/float(total)*40)
+                    print("[" + "="*num + ">" + " "*(40-num) + "]", end="\r")
+                i += 1
+        
 
     def debug_continue_until_ret(self):
         print("Debug continue until ret")
@@ -314,20 +353,6 @@ class Debugger():
     def debug_continue_until_call(self):
         print("Debug continue until call")
         self.simgr.run()
-
-
-    def debug_registers(self):
-        simgr = self.simgr
-        state = simgr.active[0] # Temporary hack
-        print("rax = " + str(state.regs.rax))
-        print("rbx = " + str(state.regs.rbx))
-        print("rcx = " + str(state.regs.rcx))
-        print("rdx = " + str(state.regs.rdx))
-        print("rsi = " + str(state.regs.rsi))
-        print("rdi = " + str(state.regs.rdi))
-        print("rsp = " + str(state.regs.rsp))
-        print("rbp = " + str(state.regs.rbp))
-        print("rip = " + str(state.regs.rip))
 
 
     def debug_initialize():
