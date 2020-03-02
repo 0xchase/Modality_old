@@ -32,7 +32,7 @@ class Debugger():
     # CURRENTLY BROKEN
     def debug_explore_stdout(self):
         print("Exploring until stdout " + self.command[1])
-        self.simgr.explore(find=lambda s: self.command[1].strip().encode() in s.posix.dumps(1))
+        self.simgr.explore(find=lambda s: self.command[1].strip().encode() in s.posix.dumps(1)).unstash(from_stash="found", to_stash="active")
 
     def debug_explore_until_dfs(self):
         print("Exploring using DFS")

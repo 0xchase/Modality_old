@@ -34,3 +34,6 @@ Change printing format to have [DEBUG] [PRINT] [HOOK] etc
 ## Pre-built constraints
  - Constrain on strlen()
 
+# Research Ideas
+ - Generate models of malware system call dependecies, recover higher level functionality. Ex: On branch 1, do write to file and print, on branch 2, print and read from input, connet to server. Etc.
+ - Switch between concrete and symbolic execution. Use this to bypass packer. Using Symbion exloration method, example on angr blog.
