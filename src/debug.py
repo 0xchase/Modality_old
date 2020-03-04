@@ -332,18 +332,8 @@ class Debugger():
         self.simgr.run()
 
     def debug_continue_until_branch(self):
-        if len(self.command) == 1:
-            while len(self.simgr.active) == 1:
-                self.simgr.step()
-        else:
-            i = 0
-            total = int(self.command[1])
-            while len(self.simgr.active) == 1:
-                self.simgr.step()
-                if i % 10 == 0:
-                    num = int(i/float(total)*40)
-                    print("[" + "="*num + ">" + " "*(40-num) + "]", end="\r")
-                i += 1
+        while len(self.simgr.active) == 1:
+            self.simgr.step()
         
 
     def debug_continue_until_ret(self):

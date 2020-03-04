@@ -40,7 +40,8 @@ print(str(argv))
 
 filename = sys.argv[1]
 project = angr.Project(filename)
-state = project.factory.entry_state(args=argv, stdin=stdin, add_options=angr.options.unicorn)
+#state = project.factory.entry_state(args=argv, stdin=stdin, add_options=angr.options.unicorn)
+state = project.factory.entry_state(args=argv, stdin=stdin)
 simgr = project.factory.simgr(state, veritesting=False)
 
 state.history_arr = []
