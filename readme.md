@@ -6,6 +6,8 @@ This project is in it's early stages and will only work on some binaries.
 
 PRIORITY - implement callFunction - gives args necessary to return specific value
 Change printing format to have [DEBUG] [PRINT] [HOOK] etc
+Detect path explosion
+If path explosion detected, do one more loop to check where split occurs, print that instruction and address
 
 ## Debugger
  - Add avoid commands
@@ -16,6 +18,8 @@ Change printing format to have [DEBUG] [PRINT] [HOOK] etc
  - When hooking function calls, print args
  - When hit calls like strlen(), choose to simulate or constrain
  - Automatically hook unknown windows functions. Print and skip, or lookup return type and symbolize.
+ - Detect path explosion
+ - If path explosion detected, while in loop, print instruction/address where split to identify cause
 
 ## State
  - Track history for each state (currently not working)
