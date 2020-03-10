@@ -19,6 +19,7 @@ from printer import *
 from hooks import *
 from util import *
 from hooks import *
+from analysis import *
 
 print("Imported libraries")
 
@@ -77,10 +78,12 @@ disassembler = Disassembler(filename)
 debugger = Debugger(disassembler.functions)
 printer = Printer()
 hooks = Hooks()
-hooks.setup_loops(angr, project, simgr, filename, colored)
-hooks.functions = disassembler.functions
-hooks.library_functions = disassembler.library_functions
-hooks.setup_functions()
+#hooks.setup_loops(angr, project, simgr, filename, colored)
+#hooks.functions = disassembler.functions
+#hooks.library_functions = disassembler.library_functions
+#hooks.setup_functions()
+
+analysis = Analysis()
 
 #for b in stdin.chop(8):
 #    state.solver.And(b >= ord(' '), b <= ord('~'))
@@ -111,6 +114,7 @@ debugger_commands = [
             ("deo", debugger.debug_explore_stdout),
             ("dr", debugger.debug_registers),
             ("dp", debugger.debug_print),
+            ("df", debugger.debug_function),
             ("doo", debugger.debug_initialize)]
 
 disassembler_commands = [
@@ -144,6 +148,10 @@ print_commands = [
             ("psp", printer.states_path),
             ("pst", printer.states_tree),
             ("pia", printer.stdin_all)]
+
+analysis_commands = [
+            ("aaa", analysis.aaa)
+            ]
 
 util_commands = [
             ("c", clear),
@@ -188,6 +196,44 @@ def command_line():
                 printer.simgr = simgr
                 printer.stdin = stdin
                 function()
+        if command[0] == "a":
+            print("Analyzing function calls")
+            hooks.project = project
+            hooks.simgr = simgr
+            hooks.filename = filename
+            hooks.colored = colored
+            hooks.angr = angr
+            hooks.functions = disassembler.functions
+            hooks.library_functions = disassembler.library_functions
+            hooks.setup_functions()
+        if command[0] == "aa":
+            print("Analyzing fucntion calls and loops")
+            hooks.project = project
+            hooks.simgr = simgr
+            hooks.filename = filename
+            hooks.colored = colored
+            hooks.angr = angr
+            hooks.functions = disassembler.functions
+            hooks.library_functions = disassembler.library_functions
+            hooks.setup_functions()
+
+            hooks.setup_loops(angr, project, simgr, filename, colored)
+        if command[0] == "aaa":
+            print("Analyzing function calls, loops, and memory read/writes")
+            hooks.project = project
+            hooks.simgr = simgr
+            hooks.filename = filename
+            hooks.colored = colored
+            hooks.angr = angr
+            hooks.functions = disassembler.functions
+            hooks.library_functions = disassembler.library_functions
+            hooks.setup_functions()
+
+            hooks.setup_loops(angr, project, simgr, filename, colored)
+
+            analysis.simgr = simgr
+            analysis.angr = angr
+            analysis.aaa()
 
 def get_addr():
     ret = ""

@@ -25,6 +25,37 @@ class Debugger():
             for i in range(0, num):
                 self.simgr.step()
 
+    def debug_function(self):
+        print("Running function")
+        f = self.project.factory.callable(int(self.command[1], 16))
+        for i in range(2, len(self.command)):
+            try:
+                self.command[i] = int(self.command[i])
+            except:
+                try:
+                    self.command[i] = int(self.command[i], 16)
+                except:
+                    pass
+        if len(self.command[2:]) == 0:
+            print(colored("Calling function with 0 arguments", "yellow"))
+            f()
+        elif len(self.command[2:]) == 1:
+            print(colored("Calling function with 1 arguments", "yellow"))
+            f(self.command[2])
+        elif len(self.command[2:]) == 2:
+            print(colored("Calling function with 2 arguments", "yellow"))
+            f(self.command[2], self.command[3])
+        elif len(self.command[2:]) == 3:
+            print(colored("Calling function with 3 arguments", "yellow"))
+            f(self.command[2], self.command[3], self.command[4])
+        else:
+            print(colored("Unsupported number of arguments", "red"))
+            return
+        print("")
+        print(colored("Return value: " + str(f.result_state.regs.rax), "yellow"))
+        print(colored("Return concrete: " + str(f.result_state.regs.rax.concrete), "green"))
+        
+
     def restore_state(self, simgr1):
         simgr1.active = self.active_backup
         simgr1.deadended = self.deadended_backup

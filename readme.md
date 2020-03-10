@@ -5,6 +5,8 @@ This project is in it's early stages and will only work on some binaries.
 # Todo
 
 PRIORITY - implement callFunction - gives args necessary to return specific value
+Implement analysis command
+
 Change printing format to have [DEBUG] [PRINT] [HOOK] etc
 Detect path explosion
 If path explosion detected, do one more loop to check where split occurs, print that instruction and address
