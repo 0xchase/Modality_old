@@ -198,6 +198,7 @@ def command_line():
                 function()
         if command[0] == "a":
             print("Analyzing function calls")
+            analysis.colored = colored
             hooks.project = project
             hooks.simgr = simgr
             hooks.filename = filename
@@ -208,6 +209,7 @@ def command_line():
             hooks.setup_functions()
         if command[0] == "aa":
             print("Analyzing fucntion calls and loops")
+            analysis.colored = colored
             hooks.project = project
             hooks.simgr = simgr
             hooks.filename = filename
@@ -220,6 +222,7 @@ def command_line():
             hooks.setup_loops(angr, project, simgr, filename, colored)
         if command[0] == "aaa":
             print("Analyzing function calls, loops, and memory read/writes")
+            analysis.colored = colored
             hooks.project = project
             hooks.simgr = simgr
             hooks.filename = filename

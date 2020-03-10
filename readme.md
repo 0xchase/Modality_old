@@ -4,8 +4,14 @@ This project is in it's early stages and will only work on some binaries.
 
 # Todo
 
-PRIORITY - implement callFunction - gives args necessary to return specific value
-Implement analysis command
+PRIORITY - 
+implement callFunction - gives args necessary to return specific value
+Use inspect.b with call to print calls/other info in a tree
+When state splits, print [1|2] => [1|3] with split address
+Use inspect.b with simprocedure to update this information
+Print function return values if in CONFIG
+Deal with offets for PIE
+Create log for each state. On hooks, add information to state "log" string
 
 Change printing format to have [DEBUG] [PRINT] [HOOK] etc
 Detect path explosion
