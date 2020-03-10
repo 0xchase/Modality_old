@@ -12,6 +12,10 @@ def kill(main, command, simgr):
         num = int(command[1])
         simgr.deadended.append(simgr.active[num])
         simgr.active.remove(simgr.active[num])
+
+def drop(main, command, simgr):
+    print("Dropping deadended stash")
+    simgr.drop(stash="deadended")
         
 def save(main, command, simgr):
     if "0x" in command[1]:

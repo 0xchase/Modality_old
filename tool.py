@@ -129,6 +129,7 @@ stash_commands = [
             ("sr", stash.revive),
             ("sro", stash.revive_stdout),
             ("sra", stash.revive_all),
+            ("sd", stash.drop),
             ("sn", stash.name),
             ("si", stash.stdin),
             ("sia", stash.stdin_all),
