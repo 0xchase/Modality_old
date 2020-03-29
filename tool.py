@@ -23,7 +23,7 @@ from analysis import *
 
 print("Imported libraries")
 
-stdin = claripy.BVS("stdin", 32*8)
+stdin = claripy.BVS("stdin", 10*8)
 argv = []
 
 argv.append(sys.argv[1])
@@ -53,7 +53,12 @@ for b in stdin.chop(8):
     #state.solver.add(b > 43)
     state.solver.add(b < 127)
 
-state.solver.add(stdin.chop(8)[10] == '\x00')
+state.solver.add(stdin.chop(8)[len(stdin.chop(8))-1] == '\x00')
+
+@project.hook(0x400990, length=0)
+def hashmenot_regs(state):
+    state.regs.rax = claripy.BVV(0x51, 64)
+    state.regs.rdi = claripy.BVV(0x51, 64)
 
 for sym_arg in argv[1:]:
     print("Constraining argument to ascii range")
