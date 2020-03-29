@@ -2,7 +2,7 @@
 
 This project is in it's early stages and will only work on some binaries.
 
-Modality is a debugger built on the popular symbolic execution engine Angr. It provides an interface for a reverse engineer to perform symbolic executino, constraint solving, emulation, etc without writing scripts. One complete, this tool should be efficient at solving most CTF reversing challenges. 
+Modality is a debugger built on the popular symbolic execution engine Angr. It provides an interface (inspired by radare2) for a reverse engineer to perform symbolic executino, constraint solving, emulation, etc without writing scripts. One complete, this tool should be efficient at solving most CTF reversing challenges. 
 
 ## Example
 
