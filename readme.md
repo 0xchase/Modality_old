@@ -1,6 +1,6 @@
 # Modality Debugger
 
-This project is in it's early stages and will only work on some binaries. In progress docs can be found [here](https://github.com/chase1635321/Modality/wiki)
+This project is in it's early stages and will only work on some binaries. In progress docs can be found [here](https://github.com/chase1635321/Modality/wiki).
 
 Modality is a debugger built on the popular symbolic execution engine Angr. It provides an interface (inspired by radare2) for a reverse engineer to perform symbolic executino, constraint solving, emulation, etc without writing scripts. One complete, this tool should be efficient at solving most CTF reversing challenges. 
 
