@@ -376,17 +376,18 @@ class Debugger():
         self.simgr.run()
 
 
-    def debug_initialize():
+    def debug_initialize(self):
         command = self.command
         simgr = self.simgr
         if len(command) == 1:
             print("Initializing at entry state")
-            state = project.factory.entry_state()
-            simgr = project.factory.simgr(state)
+            state = self.project.factory.entry_state()
+            simgr = self.project.factory.simgr(state)
         else:
             print("Initializing blank state at " + command[1])
-            state = project.factory.blank_state(addr=int(command[1],16))
-            simgr = project.factory.simgr(state)
+
+            state = self.project.factory.blank_state(addr=int(command[1],16))
+            simgr = self.project.factory.simgr(state)
 
     def symbol_to_address(self, s):
         for addr, name in self.functions:

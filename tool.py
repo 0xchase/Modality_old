@@ -23,85 +23,75 @@ from analysis import *
 
 print("Imported libraries")
 
-stdin = claripy.BVS("stdin", 10*8)
-argv = []
-
-argv.append(sys.argv[1])
-arg_num = 0
-
-if len(sys.argv) > 2:
-    print("Symbolizing arugments")
-    arg_num = int(sys.argv[2])
-
-for i in range(0, arg_num):
-    sym_arg = claripy.BVS("sym_arg" + str(i), 11*8)
-    argv.append(sym_arg)
-
-print(str(argv))
-
 filename = sys.argv[1]
-project = angr.Project(filename)
-#state = project.factory.entry_state(args=argv, stdin=stdin, add_options=angr.options.unicorn)
-state = project.factory.entry_state(args=argv, stdin=stdin)
-simgr = project.factory.simgr(state, veritesting=False)
+project = None
+simgr = None
+state = None
+argv = None
+stdin = None
 
-state.history_arr = []
-
-for b in stdin.chop(8):
-    #state.solver.add(b > 0x20)
-    #state.solver.add(b < 0x7f)
-    #state.solver.add(b > 43)
-    state.solver.add(b < 127)
-
-state.solver.add(stdin.chop(8)[len(stdin.chop(8))-1] == '\x00')
-
-@project.hook(0x400990, length=0)
-def hashmenot_regs(state):
-    state.regs.rax = claripy.BVV(0x51, 64)
-    state.regs.rdi = claripy.BVV(0x51, 64)
-
-for sym_arg in argv[1:]:
-    print("Constraining argument to ascii range")
-    for b in sym_arg.chop(8):
-        state.solver.And(b >= ord(' '), b <= ord('~'))
-        #state.solver.add(b != '\x80')
-
-#for i in range(0, arg_num):
-#    for b in argv[-1].chop(8):
-#        state.solver.And(b >= ord(' '), b <= ord('~'))
-
-def initialize(pr, st, si):
+def debugger_initialize(addr):
     global project
-    global state
     global simgr
+    global state
+    global stdin
+    global argv
 
-    project = pr
-    state = st
-    simgr = si
+    stdin = claripy.BVS("stdin", 0x2c*8)
+    argv = []
+
+    argv.append(sys.argv[1])
+    arg_num = 0
+
+    if len(sys.argv) > 2:
+        print("Symbolizing arugments")
+        arg_num = int(sys.argv[2])
+
+    for i in range(0, arg_num):
+        sym_arg = claripy.BVS("sym_arg" + str(i), 20*8)
+        argv.append(sym_arg)
+
+    print(str(argv))
+
+    project = angr.Project(filename)
+    #state = project.factory.entry_state(args=argv, stdin=stdin, add_options=angr.options.unicorn)
+
+    if addr == "entry0":
+        state = project.factory.entry_state(args=argv, stdin=stdin)
+    else:
+        state = project.factory.blank_state(addr=int(addr, 16), args=argv, stdin=stdin)
+
+    simgr = project.factory.simgr(state, veritesting=False)
+
+    state.history_arr = []
+
+    for b in stdin.chop(8):
+        #state.solver.add(b > 0x20)
+        #state.solver.add(b < 0x7f)
+        #state.solver.add(b > 43)
+        state.solver.add(b < 127)
+
+    state.solver.add(stdin.chop(8)[len(stdin.chop(8))-1] == '\x00')
+
+    @project.hook(0x400990, length=0)
+    def hashmenot_regs(state):
+        state.regs.rax = claripy.BVV(0x51, 64)
+        state.regs.rdi = claripy.BVV(0x51, 64)
+
+    for sym_arg in argv[1:]:
+        print("Constraining argument to ascii range")
+        for b in sym_arg.chop(8):
+            state.solver.And(b >= ord(' '), b <= ord('~'))
+            #state.solver.add(b != '\x80')
+
+debugger_initialize("entry0")
 
 disassembler = Disassembler(filename)
 debugger = Debugger(disassembler.functions)
 printer = Printer()
 hooks = Hooks()
-#hooks.setup_loops(angr, project, simgr, filename, colored)
-#hooks.functions = disassembler.functions
-#hooks.library_functions = disassembler.library_functions
-#hooks.setup_functions()
 
 analysis = Analysis()
-
-#for b in stdin.chop(8):
-#    state.solver.And(b >= ord(' '), b <= ord('~'))
-
-
-# ========== Initialization code ==========
-
-#@project.hook(0x4007fd, length=0)
-#def hook_merge(state):
-#    print(colored(" Filtering states", "cyan"))
-#    simgr.active = [simgr.active[-1]]
-
-# ========== Initialization code ==========
 
 debugger_commands = [
             ("dc", debugger.debug_continue),
@@ -174,6 +164,11 @@ def command_line():
     while True:
         print(colored("[" + get_addr() + "|", "yellow") + colored(str(len(simgr.deadended)), "red") + colored("]> ", "yellow"), end='')
         command = input().strip().split(" ")
+        if "di" == command[0]:
+            if len(command) < 2:
+                debugger_initialize("entry0")
+            else:
+                debugger_initialize(command[1])
 
         for cmd, function in debugger_commands:
             if cmd == command[0]:
