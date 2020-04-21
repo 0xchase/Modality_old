@@ -5,34 +5,61 @@
 r2-angr
 """
 
-from __future__ import print_function
-
 import r2lang
 import r2pipe
-import angr
+import sys
 
 # Add command to access old mounting commands
 
 r = r2pipe.open()
 
+session = None
+initialized = False
 
 def r2angr(_):
+    global session
+    global initialized
+
     """Build the plugin"""
 
     binary = r.cmdj("ij")["core"]["file"]
 
     def process(command):
+        global session
+        global initialized
         """Process commands here"""
 
         if not command.startswith("m"):
             return 0
 
+        if command == "mi":
+            sys.path.append("src/")
+            try:
+                from session import Session
+                session = Session(binary)
+                initialized = True
+            except Exception as e:
+                print(e)
+        else:
+            try:
+                if initialized:
+                    session.run(command)
+                else:
+                    print("r2angr not initialized")
+            except Exception as e:
+                print(e)
+
+        if command == "mt":
+            print("mt is here")
+
         if "?" in command:
+            print("Printing help menu")
 
 
         # Parse arguments
-        tmp = command.split(" ")
-        print(str(tmp))
+        #tmp = command.split(" ")
+        #print(str(tmp))
+        return 1
 
     return {"name": "r2-angr",
             "licence": "GPLv3",
