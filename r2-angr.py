@@ -9,8 +9,6 @@ import r2lang
 import r2pipe
 import sys
 
-# Add command to access old mounting commands
-
 r = r2pipe.open()
 
 session = None
@@ -27,6 +25,7 @@ def r2angr(_):
     def process(command):
         global session
         global initialized
+
         """Process commands here"""
 
         if not command.startswith("m"):
@@ -36,25 +35,18 @@ def r2angr(_):
             sys.path.append("src/")
             try:
                 from session import Session
-                session = Session(binary)
+                session = Session(binary, r)
                 initialized = True
             except Exception as e:
                 print(e)
         else:
             try:
                 if initialized:
-                    session.run(command)
+                    session.run(command[1:])
                 else:
                     print("r2angr not initialized")
             except Exception as e:
                 print(e)
-
-        if command == "mt":
-            print("mt is here")
-
-        if "?" in command:
-            print("Printing help menu")
-
 
         # Parse arguments
         #tmp = command.split(" ")
@@ -65,7 +57,6 @@ def r2angr(_):
             "licence": "GPLv3",
             "desc": "Integrates angr with radare2",
             "call": process}
-
 
 # Register the plugin
 if not r2lang.plugin("core", r2angr):

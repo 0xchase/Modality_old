@@ -125,8 +125,9 @@ class Debugger():
         print("[" + "-"*30 + "    " + "-"*30 + "]")
 
     def debug_explore_until(self):
-        command = self.command
-        simgr = self.simgr
+        print("Exploring until...")
+        command = self.session.command
+        simgr = self.session.simgr
         
         self.active_backup = simgr.active.copy()
         self.deadended_backup = simgr.deadended.copy()
@@ -143,6 +144,8 @@ class Debugger():
             print(colored("Found " + str(len(simgr.active)) + " solutions", "green"))
         else:
             print(colored("Exploration failed, use der to restore", "red"))
+
+        self.session.r2p.cmd("s " + hex(addr))
 
     def debug_explore_revert(self):
         print("Restoring state")
@@ -363,8 +366,9 @@ class Debugger():
         self.simgr.run()
 
     def debug_continue_until_branch(self):
-        while len(self.simgr.active) == 1:
-            self.simgr.step()
+        print("Continuing until branch")
+        while len(self.session.simgr.active) == 1:
+            self.session.simgr.step()
         
 
     def debug_continue_until_ret(self):
@@ -390,7 +394,7 @@ class Debugger():
             simgr = self.project.factory.simgr(state)
 
     def symbol_to_address(self, s):
-        for addr, name in self.functions:
-            if name == s:
-                return addr
+        for f in self.session.r2p.cmdj("aflj"):
+            if f["name"] == s:
+                return hex(f["offset"])
 
